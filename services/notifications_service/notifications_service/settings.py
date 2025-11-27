@@ -2,14 +2,11 @@
 Django settings for notifications_service project.
 """
 
-import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
-if not SECRET_KEY:
-    raise ValueError("DJANGO_SECRET_KEY environment variable is required")
+SECRET_KEY = 'replace-me-with-a-secret-key'
 
 DEBUG = True
 
