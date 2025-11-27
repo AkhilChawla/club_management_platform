@@ -4,6 +4,7 @@ services:
     container_name: clubs
     environment:
       - DJANGO_SETTINGS_MODULE=clubs_service.settings
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_USER=user
       - RABBITMQ_PASS=password
@@ -15,6 +16,7 @@ services:
     container_name: events
     environment:
       - DJANGO_SETTINGS_MODULE=events_service.settings
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_USER=user
       - RABBITMQ_PASS=password
@@ -26,6 +28,7 @@ services:
     container_name: payments
     environment:
       - DJANGO_SETTINGS_MODULE=payments_service.settings
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_USER=user
       - RABBITMQ_PASS=password
@@ -37,6 +40,7 @@ services:
     container_name: notifications
     environment:
       - DJANGO_SETTINGS_MODULE=notifications_service.settings
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_USER=user
       - RABBITMQ_PASS=password
