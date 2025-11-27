@@ -3,8 +3,7 @@
 import os
 import json
 import logging
-import time
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 import pika
 from django.conf import settings
@@ -12,7 +11,6 @@ from django.conf import settings
 from .models import Notification
 
 logger = logging.getLogger(__name__)
-UNKNOWN_USER = "Unknown User"
 
 
 class NotificationConsumer:
@@ -80,7 +78,7 @@ class NotificationConsumer:
             # Acknowledge to avoid infinite reprocessing
             channel.basic_ack(delivery_tag=method.delivery_tag)
     
-    def create_notification(self, event_type: str, event_data: Dict[str, Any]) -> Optional[Notification]:
+    def create_notification(self, event_type: str, event_data: Dict[str, Any]) -> Notification:
         """Create a notification based on event type and data."""
         try:
             # Determine source service based on event type
@@ -90,9 +88,9 @@ class NotificationConsumer:
             subject, message = self.generate_notification_content(event_type, event_data)
             
             # Extract user information from event data
-            user_id = event_data.get('user_id') or ""
-            user_name = event_data.get('user_name') or UNKNOWN_USER
-            user_email = event_data.get('user_email') or ""
+            user_id = event_data.get('user_id')
+            user_name = event_data.get('user_name')
+            user_email = event_data.get('user_email')
             
             # Create the notification
             notification = Notification.objects.create(
@@ -142,7 +140,8 @@ class NotificationConsumer:
             )
         
         elif event_type == 'member_added':
-            user_name = event_data.get('user_name', UNKNOWN_USER)
+            club_id = event_data.get('club_id', 'Unknown')
+            user_name = event_data.get('user_name', 'Unknown User')
             role = event_data.get('role', 'member')
             return (
                 "New Club Member",
@@ -151,13 +150,15 @@ class NotificationConsumer:
         
         elif event_type == 'event_created':
             event_name = event_data.get('name', 'Unknown Event')
+            club_id = event_data.get('club_id', 'Unknown')
             return (
                 "New Event Created",
                 f"A new event '{event_name}' has been created for your club."
             )
         
         elif event_type == 'rsvp_created':
-            user_name = event_data.get('user_name', UNKNOWN_USER)
+            event_id = event_data.get('event_id', 'Unknown')
+            user_name = event_data.get('user_name', 'Unknown User')
             return (
                 "Event RSVP",
                 f"{user_name} has RSVP'd for the event."
@@ -165,6 +166,7 @@ class NotificationConsumer:
         
         elif event_type == 'order_created':
             order_id = event_data.get('id', 'Unknown')
+            user_id = event_data.get('user_id', 'Unknown User')
             return (
                 "Ticket Purchase Confirmation",
                 f"Your ticket purchase (Order #{order_id}) has been completed successfully."
@@ -176,25 +178,31 @@ class NotificationConsumer:
                 f"An event of type '{event_type}' has occurred in the system."
             )
     
-    def _connect_with_retries(self, max_retries: int = 5, retry_delay: int = 5) -> bool:
-        """Attempt to connect to RabbitMQ with retry/backoff."""
+    def start_consuming(self):
+        """Start consuming messages from RabbitMQ with retry logic."""
+        max_retries = 5
+        retry_delay = 5
+        
         for attempt in range(max_retries):
             try:
                 if self.connect():
                     logger.info("Successfully connected to RabbitMQ")
-                    return True
-                logger.warning(f"Connection attempt {attempt + 1} failed")
+                    break
+                else:
+                    logger.warning(f"Connection attempt {attempt + 1} failed")
+                    if attempt < max_retries - 1:
+                        logger.info(f"Retrying in {retry_delay} seconds...")
+                        import time
+                        time.sleep(retry_delay)
+                        retry_delay *= 2  # Exponential backoff
             except Exception as e:
                 logger.error(f"Connection attempt {attempt + 1} failed: {e}")
-            if attempt < max_retries - 1:
-                logger.info(f"Retrying in {retry_delay} seconds...")
-                time.sleep(retry_delay)
-                retry_delay *= 2  # Exponential backoff
-        return False
-
-    def start_consuming(self):
-        """Start consuming messages from RabbitMQ with retry logic."""
-        if not self._connect_with_retries():
+                if attempt < max_retries - 1:
+                    import time
+                    time.sleep(retry_delay)
+                    retry_delay *= 2
+        
+        if not self.connection or self.connection.is_closed:
             logger.error("Failed to connect to RabbitMQ after all retries. Cannot start consuming.")
             return
         

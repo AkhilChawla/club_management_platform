@@ -18,9 +18,9 @@ class Notification(models.Model):
     event_data = models.JSONField(help_text="Original event data from the source service")
     
     # User information (extracted from event data)
-    user_id = models.CharField(max_length=100, blank=True, help_text="ID of the user to notify")
-    user_email = models.EmailField(blank=True, help_text="Email of the user to notify")
-    user_name = models.CharField(max_length=200, blank=True, help_text="Name of the user to notify")
+    user_id = models.CharField(max_length=100, null=True, blank=True, help_text="ID of the user to notify")
+    user_email = models.EmailField(null=True, blank=True, help_text="Email of the user to notify")
+    user_name = models.CharField(max_length=200, null=True, blank=True, help_text="Name of the user to notify")
     
     # Notification content
     subject = models.CharField(max_length=200, help_text="Notification subject/title")

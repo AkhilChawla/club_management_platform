@@ -6,7 +6,6 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
 from .models import Club, Membership
-from django.db import IntegrityError
 from .serializers import (
     ClubSerializer,
     ClubInputSerializer,
@@ -104,13 +103,7 @@ class ClubMemberListCreateView(generics.ListCreateAPIView):
         club = get_object_or_404(Club, pk=club_id)
         serializer = MembershipSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        try:
-            membership = serializer.save(club=club)
-        except IntegrityError:
-            return Response(
-                {"detail": "Member already exists for this club."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        membership = serializer.save(club=club)
         publish_event('member_added', {
             'club_id': str(club.id),
             'member_id': str(membership.id),
