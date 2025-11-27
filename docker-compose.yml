@@ -1,0 +1,54 @@
+services:
+  clubs:
+    build: ./services/clubs_service
+    container_name: clubs
+    environment:
+      - DJANGO_SETTINGS_MODULE=clubs_service.settings
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_USER=user
+      - RABBITMQ_PASS=password
+    ports:
+      - "8001:8000"
+
+  events:
+    build: ./services/events_service
+    container_name: events
+    environment:
+      - DJANGO_SETTINGS_MODULE=events_service.settings
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_USER=user
+      - RABBITMQ_PASS=password
+    ports:
+      - "8002:8000"
+
+  payments:
+    build: ./services/payments_service
+    container_name: payments
+    environment:
+      - DJANGO_SETTINGS_MODULE=payments_service.settings
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_USER=user
+      - RABBITMQ_PASS=password
+    ports:
+      - "8003:8000"
+
+  notifications:
+    build: ./services/notifications_service
+    container_name: notifications
+    environment:
+      - DJANGO_SETTINGS_MODULE=notifications_service.settings
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_USER=user
+      - RABBITMQ_PASS=password
+    ports:
+      - "8004:8000"
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password

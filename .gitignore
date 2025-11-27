@@ -1,0 +1,7 @@
+*.venv
+*.DS_Store
+*.pyc
+*venv
+.coverage
+coverage.*
+sonar*
