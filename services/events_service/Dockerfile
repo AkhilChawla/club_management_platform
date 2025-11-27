@@ -5,8 +5,8 @@ WORKDIR /app
 RUN pip install --no-cache-dir \
     "Django>=4.2,<5.0" \
     "djangorestframework>=3.14,<4.0" \
-    "requests>=2.31" \
-    "pika>=1.3.0"
+    "pika>=1.3.0" \
+    "requests>=2.31"
 
 COPY . .
 
